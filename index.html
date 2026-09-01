@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spark · Build Sheet</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0c12;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;padding:36px 20px 80px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto}
+header h1{font-size:30px;font-weight:800;letter-spacing:-.6px;color:#f1f5f9}
+header .tag{font-size:13px;color:#64748b;margin-top:4px}
+.pitch{background:#111725;border:1px solid #1e2637;border-radius:14px;padding:18px 20px;margin:18px 0 22px;font-size:14.5px;color:#cbd5e1}
+.pitch b{color:#f1f5f9}
+.pitch .stats{display:flex;flex-wrap:wrap;gap:22px;margin-top:14px}
+.pitch .stat{}
+.pitch .stat b{display:block;font-size:22px;color:#38d39f}
+.pitch .stat span{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px}
+.controls{position:sticky;top:0;background:#0a0c12;padding:12px 0;z-index:10;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#q{flex:1;min-width:200px;background:#111725;border:1px solid #334155;border-radius:10px;color:#e2e8f0;padding:11px 14px;font-size:14px;font-family:inherit}
+#q:focus{outline:none;border-color:#3b82f6}
+.navpill{font-size:12px;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid #334155;color:#94a3b8;cursor:pointer;user-select:none;white-space:nowrap}
+.navpill:hover{border-color:#3b82f6;color:#e2e8f0}
+.navpill.active{color:#04140f}
+.cat{margin-top:30px}
+.cat-h{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:2px;padding-bottom:8px;border-bottom:2px solid;margin-bottom:14px}
+.cat-h .n{margin-left:auto;font-size:11px;color:#475569;letter-spacing:1px}
+.card{background:#111725;border:1px solid #1e2637;border-radius:12px;padding:15px 17px;margin-bottom:11px;border-left:3px solid}
+.card h3{font-size:16px;color:#f1f5f9;font-weight:700}
+.card .sum{font-size:13.5px;color:#94a3b8;margin-top:5px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tags span{font-size:11px;color:#7dd3fc;background:#0b2436;border:1px solid #164e63;border-radius:6px;padding:2px 8px;font-family:ui-monospace,'SF Mono',monospace}
+.card ul{margin:11px 0 2px;padding-left:0;list-style:none}
+.card li{font-size:13px;color:#cbd5e1;padding:3px 0 3px 16px;position:relative}
+.card li::before{content:'▸';position:absolute;left:0;color:#475569}
+.card li b{color:#e2e8f0}
+.empty{color:#475569;text-align:center;padding:40px;font-size:14px}
+footer{margin-top:50px;text-align:center;font-size:11px;color:#1e2235}
+mark{background:#facc15;color:#000;border-radius:2px}
+
+/* ===== pipeline diagram modal ===== */
+.dgm-btn{margin-top:12px;font-size:12.5px;font-weight:600;color:#c4a2ff;background:#1a1230;border:1px solid #3b2a63;border-radius:8px;padding:7px 13px;cursor:pointer;font-family:inherit}
+.dgm-btn:hover{background:#241842;border-color:#a855f7;color:#fff}
+.dgm-modal{display:none;position:fixed;inset:0;background:rgba(4,6,12,.82);z-index:100;padding:26px 14px;overflow:auto}
+.dgm-modal.open{display:flex;align-items:flex-start;justify-content:center}
+.dgm-box{background:#0f1520;border:1px solid #1e2637;border-radius:16px;max-width:1000px;width:100%;padding:20px 20px 24px;position:relative;margin:0 auto}
+.dgm-box h4{font-size:18px;color:#f1f5f9;font-weight:800;letter-spacing:-.3px;padding-right:38px}
+.dgm-box .cap{font-size:13px;color:#94a3b8;margin:6px 0 14px;max-width:74ch;line-height:1.5}
+.dgm-box .cap b{color:#e2e8f0}
+.dgm-close{position:absolute;top:12px;right:14px;width:32px;height:32px;border-radius:8px;border:1px solid #334155;background:#111725;color:#cbd5e1;font-size:20px;line-height:1;cursor:pointer}
+.dgm-close:hover{border-color:#a855f7;color:#fff}
+.dgm-scroll{overflow-x:auto}
+.dgm svg{display:block;width:100%;min-width:720px;height:auto}
+.dgm text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.dgm .mono{font-family:ui-monospace,'SF Mono','JetBrains Mono',Menlo,monospace}
+.dgm .qbox{fill:#161b22;stroke:#2a313c;stroke-width:1.5}
+.dgm .aBox{fill:#16222f;stroke:#6ba3dc;stroke-width:1.6}
+.dgm .bBox{fill:#1e1830;stroke:#b79bf0;stroke-width:1.6}
+.dgm .aPill{fill:#3e74b0}
+.dgm .bPill{fill:#7c4dd4}
+.dgm .chip{fill:#e7a94a;stroke:#e7a94a;stroke-width:1.4}
+.dgm .ansBox{fill:#161b22;stroke:#e7ecf3;stroke-width:1.8}
+.dgm .cliPill{fill:none;stroke:#b79bf0;stroke-width:1.6;stroke-dasharray:5 4}
+.dgm .divider{stroke:#2a313c;stroke-width:1.4}
+.dgm .flow{stroke:#98a3b2;stroke-width:1.6;fill:none}
+.dgm .share{stroke:#e7a94a;stroke-width:2.1;fill:none}
+.dgm .mk-flow{fill:#98a3b2}
+.dgm .mk-share{fill:#e7a94a}
+.dgm .t{fill:#e7ecf3}
+.dgm .tm{fill:#98a3b2}
+.dgm .ts{fill:#241802}
+.dgm .tw{fill:#fff}
+.dgm .eb{font-size:9px;font-weight:700;letter-spacing:.1em}
+.dgm .zeb{font-size:11px;font-weight:700;letter-spacing:.12em;fill:#e7a94a}
+
+/* ===== interview cue-card section ===== */
+.iv{margin-top:42px;border:1px solid #3a2f18;border-radius:14px;background:#100d08;overflow:hidden}
+.iv>summary{list-style:none;cursor:pointer;padding:15px 20px;display:flex;align-items:center;gap:12px;font-size:15px;font-weight:800;color:#f0c675;letter-spacing:.4px}
+.iv>summary::-webkit-details-marker{display:none}
+.iv>summary::marker{content:''}
+.iv>summary:hover{color:#f6c979}
+.iv>summary .role{font:600 10px/1 ui-monospace,Menlo,monospace;color:#8a7a4a;letter-spacing:1px;text-transform:uppercase}
+.iv>summary .chev{margin-left:auto;color:#8a7a4a;font-size:13px;transition:transform .2s}
+.iv[open]>summary .chev{transform:rotate(180deg)}
+.iv-body{padding:2px 20px 22px}
+.iv-who{background:#1a1305;border:1px solid #3a2f18;border-radius:9px;padding:11px 13px;font-size:12.5px;color:#d8d2c4;margin-bottom:13px;line-height:1.5}
+.iv-who b{color:#f0c675}
+.iv-who .warn{color:#f6a94a;font-weight:700}
+.iv-rule{background:#1a1305;border:1px solid #4a3a12;border-radius:9px;padding:10px 14px;margin-bottom:18px;font-size:12.5px}
+.iv-rule .k{display:block;font:700 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#c99a3a;margin-bottom:5px}
+.iv-rule .flow{font-weight:800;color:#f0c675;font-size:14px}
+.iv-rule .note{color:#cbd5e1}
+.iv-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:16px 26px}
+@media(max-width:720px){.iv-grid{grid-template-columns:1fr}}
+.iv-h{font:700 10.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.13em;text-transform:uppercase;color:#7dd3fc;border-bottom:1px solid #1e2637;padding-bottom:6px;margin-bottom:10px}
+.iv-beats{list-style:none;counter-reset:b;padding:0;margin:0}
+.iv-beats li{counter-increment:b;position:relative;padding:0 0 7px 25px;font-size:12.5px;color:#cbd5e1;line-height:1.4}
+.iv-beats li::before{content:counter(b);position:absolute;left:0;top:1px;width:17px;height:17px;border-radius:50%;background:#23425f;color:#fff;font:700 10px/17px ui-monospace,Menlo,monospace;text-align:center}
+.iv-beats b{color:#e2e8f0}
+.iv-beats .say{color:#f0c675;font-weight:700;font-style:italic}
+.iv-lines{list-style:none;counter-reset:l;padding:0;margin:0}
+.iv-lines li{counter-increment:l;position:relative;padding:0 0 9px 20px;font-size:12px;color:#cbd5e1;line-height:1.42;font-style:italic}
+.iv-lines li::before{content:counter(l);position:absolute;left:0;top:1px;font:800 11px/1 ui-monospace,Menlo,monospace;color:#f0c675;font-style:normal}
+.iv-lines .lab{display:block;font:700 9px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:#8a94a2;margin-bottom:2px;font-style:normal}
+.iv-lines b{color:#e2e8f0}
+.iv-pts{list-style:none;padding:0;margin:0}
+.iv-pts li{position:relative;padding:0 0 6px 15px;font-size:12px;color:#cbd5e1;line-height:1.4}
+.iv-pts li::before{content:'';position:absolute;left:1px;top:7px;width:5px;height:5px;border-radius:50%;background:#7dd3fc}
+.iv-pts b{color:#e2e8f0}
+.iv-pts .em{color:#f6a94a;font-weight:700}
+.iv-say{margin-top:16px;border-top:1px solid #1e2637;padding-top:13px}
+.iv-chips{display:flex;flex-wrap:wrap;gap:8px}
+.iv-chips span{background:#1a1305;border:1px solid #4a3a12;border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;font-style:italic;color:#f0c675}
+.iv-bridge{margin-top:10px;font-size:12.5px;color:#cbd5e1;font-style:italic}
+.iv-bridge .lab{font:700 9px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#7dd3fc;margin-right:7px;font-style:normal}
+.iv-safe{margin-top:9px;font-size:11.5px;color:#8a94a2}
+.iv-safe b{color:#7dd3fc}
+
+/* ===== printable full-screen cue card ===== */
+.iv-printbtn{margin:2px 0 14px;font-size:12.5px;font-weight:700;color:#0a0c12;background:#f0c675;border:1px solid #d8ad4e;border-radius:8px;padding:8px 15px;cursor:pointer;font-family:inherit}
+.iv-printbtn:hover{background:#f6d488}
+.cue-print-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(6,8,14,.9);overflow:auto}
+.cue-print-modal.open{display:block}
+.cpm-bar{position:sticky;top:0;display:flex;align-items:center;gap:14px;background:#0f1520;border-bottom:1px solid #1e2637;padding:10px 16px;color:#94a3b8;font-size:12.5px;z-index:2}
+.cpm-bar .msg{margin-right:auto;font-family:ui-monospace,Menlo,monospace}
+.cpm-bar .msg b{color:#f0c675}
+.cpm-print{background:#f0c675;color:#0a0c12;border:none;border-radius:7px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.cpm-print:hover{background:#f6d488}
+.cpm-close{width:30px;height:30px;border-radius:7px;border:1px solid #334155;background:#111725;color:#cbd5e1;font-size:19px;line-height:1;cursor:pointer}
+.cpm-close:hover{border-color:#f0c675;color:#fff}
+.cpm-card{background:#fff;color:#1b2431;max-width:8.1in;margin:26px auto;border-radius:10px;padding:26px 30px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.42;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.cpm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:2.5px solid #23425f;padding-bottom:12px}
+.cpm-head h2{margin:0;font-size:22px;letter-spacing:-.02em;font-weight:800;color:#23425f}
+.cpm-head .sub{margin:3px 0 0;font-size:12px;color:#5d6875;font-weight:600}
+.cpm-who{max-width:3.1in;font-size:11px;line-height:1.4;color:#1b2431;background:#f4f2ee;border:1px solid #dbe0e7;border-radius:8px;padding:8px 10px}
+.cpm-who b{color:#23425f}
+.cpm-who .warn{color:#a9691a;font-weight:700}
+.cpm-rule{margin:12px 0 16px;padding:9px 13px;background:#fbf3e6;border:1px solid #ecd6ac;border-radius:8px;font-size:12.5px;color:#1b2431}
+.cpm-rule .k{font:700 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;color:#a9691a;text-transform:uppercase;display:block;margin-bottom:4px}
+.cpm-rule .flow{font-weight:800;color:#23425f}
+.cpm-grid{display:grid;grid-template-columns:1.08fr 1fr;gap:18px 24px}
+.cpm-eyebrow{font:700 10.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#23425f;border-bottom:1.5px solid #dbe0e7;padding-bottom:5px;margin:0 0 9px}
+.cpm-beats{margin:0;padding:0;list-style:none;counter-reset:cb}
+.cpm-beats li{counter-increment:cb;position:relative;padding:0 0 7px 24px;font-size:12.3px;line-height:1.4;color:#1b2431}
+.cpm-beats li::before{content:counter(cb);position:absolute;left:0;top:0;font:700 10px/16px ui-monospace,Menlo,monospace;color:#fff;background:#23425f;width:16px;height:16px;border-radius:50%;text-align:center}
+.cpm-beats .say{color:#a9691a;font-weight:700;font-style:italic}
+.cpm-beats b{color:#23425f}
+.cpm-lines{margin:0;padding:0;list-style:none;counter-reset:cl}
+.cpm-lines li{counter-increment:cl;position:relative;padding:0 0 9px 22px;font-size:11.8px;line-height:1.4;color:#1b2431}
+.cpm-lines li::before{content:counter(cl);position:absolute;left:0;top:1px;font:800 11px/1 ui-monospace,Menlo,monospace;color:#a9691a}
+.cpm-lines .lab{font:700 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;color:#5d6875;display:block;margin-bottom:1px}
+.cpm-lines i{font-style:italic}
+.cpm-lines b{color:#23425f}
+.cpm-pts{margin:0;padding:0;list-style:none}
+.cpm-pts li{position:relative;padding:0 0 6px 15px;font-size:12px;line-height:1.38;color:#1b2431}
+.cpm-pts li::before{content:'';position:absolute;left:1px;top:7px;width:5px;height:5px;background:#23425f;border-radius:50%}
+.cpm-pts b{color:#23425f}
+.cpm-pts .em{color:#a9691a;font-weight:700}
+.cpm-say{margin-top:16px;border-top:2.5px solid #23425f;padding-top:12px}
+.cpm-say .cpm-eyebrow{border:none;padding:0;margin-bottom:8px;color:#a9691a}
+.cpm-chips{display:flex;flex-wrap:wrap;gap:8px}
+.cpm-chips span{background:#fbf3e6;border:1px solid #ecd6ac;border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;font-style:italic;color:#1b2431}
+.cpm-bridge{margin-top:10px;font-size:12px;line-height:1.4;color:#1b2431}
+.cpm-bridge .lab{font:700 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#23425f;margin-right:6px}
+.cpm-bridge i{font-style:italic}
+.cpm-safe{margin-top:8px;font-size:11px;color:#5d6875}
+.cpm-safe b{color:#23425f}
+@media print{
+  body{background:#fff !important}
+  body > *:not(.cue-print-modal){display:none !important}
+  .cue-print-modal{display:none}
+  .cue-print-modal.open{display:block !important;position:static;background:#fff;overflow:visible}
+  .cpm-bar{display:none !important}
+  .cpm-card{box-shadow:none;margin:0;max-width:none;border-radius:0;padding:0}
+  @page{margin:11mm}
+}
+/* section print button + printable portfolio items */
+.cat-print{margin-left:10px;background:transparent;border:1px solid #334155;border-radius:6px;color:#94a3b8;font-size:12px;padding:3px 9px;cursor:pointer;line-height:1;font-family:inherit;letter-spacing:0}
+.cat-print:hover{border-color:#f0c675;color:#f0c675}
+.cpm-cat-h{font-size:20px;font-weight:800;color:#23425f;letter-spacing:-.01em;border-bottom:2.5px solid #23425f;padding-bottom:10px;margin:0 0 16px}
+.cpm-item{padding:0 0 14px;margin:0 0 14px;border-bottom:1px solid #e6e9ee;break-inside:avoid}
+.cpm-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.cpm-item h3{font-size:15px;color:#1b2431;font-weight:700;margin:0}
+.cpm-item .cpm-sum{font-size:12px;color:#4a5563;margin:4px 0 0;line-height:1.45}
+.cpm-item .cpm-tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.cpm-item .cpm-tags span{font-size:10px;color:#23425f;background:#eef2f7;border:1px solid #d3dbe6;border-radius:5px;padding:2px 7px;font-family:ui-monospace,Menlo,monospace}
+.cpm-item ul{margin:8px 0 0;padding:0;list-style:none}
+.cpm-item li{font-size:11.6px;color:#2b3644;padding:2px 0 2px 15px;position:relative;line-height:1.4}
+.cpm-item li::before{content:'▸';position:absolute;left:0;color:#a9691a}
+.cpm-item li b{color:#23425f}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>⚡ Spark — Build Sheet</h1>
+  <div class="tag">Living cheat-sheet of what I've built · interview reference · updated <span id="upd"></span></div>
+</header>
+
+<div class="pitch">
+  <b>20+ years across financial services, AI and cloud.</b> First Class Honours, Imperial College London. Ex-CTO of a consumer fintech; built equity-trading platforms at RBS and institutional analytics at MSCI. For the last several years I <b>solo-architect and operate a portfolio of 100+ live mobile apps</b> — directing AI coding agents to build production systems while I own architecture, security, evaluation, and every money/auth/data path. Led distributed teams (India, China, Argentina, Malaysia) for 16+ years.
+  <div class="stats">
+    <div class="stat"><b>100+</b><span>apps shipped</span></div>
+    <div class="stat"><b>~50M</b><span>downloads</span></div>
+    <div class="stat"><b>~$3.8M</b><span>profit</span></div>
+    <div class="stat"><b>9</b><span>live backends</span></div>
+    <div class="stat"><b>3</b><span>trading venues</span></div>
+  </div>
+</div>
+
+<div class="controls">
+  <input id="q" placeholder="Search everything — e.g. HMAC, Sybil, RAG, Polymarket, IAP, Firebase…" autocomplete="off">
+  <span class="navpill active" data-cat="all">All</span>
+</div>
+
+<div id="out"></div>
+
+<details class="iv" open>
+  <summary>
+    🎯 WTW · Round 2 — Interview Cue Card
+    <span class="role">Fwd-Deployed AI Eng · HWC</span>
+    <span class="chev">▾</span>
+  </summary>
+  <div class="iv-body">
+
+    <button class="iv-printbtn" id="cueOpen">🖨 Full-screen print view</button>
+
+    <div class="iv-who">
+      <b>Richard Hanson</b> — ex-founder/CEO (Jobable), now <b>Product &amp; Digital Strategy / Innovation</b>, HWC (Hong Kong).
+      <span class="warn">Tests business fit, adoption, trust — NOT model internals.</span> Rewards speed &amp; delivered results.
+    </div>
+
+    <div class="iv-rule">
+      <span class="k">The golden rule — every answer</span>
+      <span class="flow">Claim → Evidence (“a system I built…”) → Result.</span>
+      <span class="note"> Don’t make him dig — lead with your best line, don’t arrive at it third.</span>
+    </div>
+
+    <div class="iv-grid">
+      <div>
+        <div class="iv-h">The MSCI Story · your anchor</div>
+        <ol class="iv-beats">
+          <li>Sat <b>with</b> the analysts — watched, triaged their bugs. Didn’t guess.</li>
+          <li>Saw it: quants doing <b>clerical data-entry</b> — SAS, long commands, find the cell, type by hand, daily.</li>
+          <li class="say">“That’s not the work we hired them for — their job is judgment.”</li>
+          <li>Fixed it: same calc behind a <b>simple interface. Same inputs, same outputs</b> — didn’t change their business.</li>
+          <li>Proved it: analysts test → <b>small group vs. the rest</b> → <i>were they faster?</i> → looped feedback.</li>
+          <li>Lesson: never became the expert — an <b>augmented</b> version of what they already do, faster.</li>
+        </ol>
+      </div>
+      <div>
+        <div class="iv-h">3 Loaded Lines · drop in</div>
+        <ol class="iv-lines">
+          <li><span class="lab">Ground truth</span>“I prove it on their <b>own past decisions</b> — not asking them to trust my judgment, showing it matches theirs.”</li>
+          <li><span class="lab">Earned autonomy</span>“Starts fully supervised. Every human edit is a correction <b>and</b> a measurement — autonomy is <b>earned</b> when edits drop, never switched on.”</li>
+          <li><span class="lab">What I bring</span>“I don’t need their domain — that’s theirs. I bring the governed engineering that gets their <b>science into a product clients adopt</b>.”</li>
+        </ol>
+
+        <div class="iv-h" style="margin-top:16px">Working w/ the DS Team · his lane</div>
+        <ul class="iv-pts">
+          <li><b>Clear lanes:</b> they own the science (is it valid?); I own productionizing + LLM/workflow + eval + deploy + adoption.</li>
+          <li>I get their science <b>out of the notebook</b> and in front of clients.</li>
+          <li><span class="em">I know when NOT to use an LLM</span> — validated model? I deploy <b>theirs</b>.</li>
+          <li>I plug <b>into</b> their governance, never around it. No shadow models.</li>
+          <li>Eval is shared: they define “correct,” I build the harness.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="iv-say">
+      <div class="iv-h" style="color:#f0c675;border:none;margin-bottom:9px">Say out loud</div>
+      <div class="iv-chips">
+        <span>“Augment, not automate.”</span>
+        <span>“Same decisions, same outputs — just faster.”</span>
+        <span>“I take away the drudgery, not the judgment.”</span>
+      </div>
+      <div class="iv-bridge"><span class="lab">Bridge</span>“I don’t need to out-actuary the actuary — same answers, faster, that they trust.”</div>
+      <div class="iv-safe"><b>Safe-failure:</b> abstain &gt; guess · money / PII → always a human · confidence ≠ stakes.</div>
+    </div>
+
+  </div>
+</details>
+
+<footer>Build Sheet · served from Tigerclaw · press <b>/</b> to search</footer>
+</div>
+
+<div class="dgm-modal" id="dgm-rag-pipeline" role="dialog" aria-modal="true" aria-label="RAG pipeline diagram">
+  <div class="dgm-box">
+    <button class="dgm-close" aria-label="Close diagram">&times;</button>
+    <h4>Two backends, one brain &mdash; the RAG pipeline</h4>
+    <div class="cap">The same question runs through <b>ask.py</b> (from-scratch &middot; NumPy) or <b>langchain_app.py</b> (LangChain &middot; Chroma). Both share the corpus, <b>bge-m3</b> and <b>qwen2.5:7b</b>; they diverge only at chunk + retrieve. Production runs the from-scratch <b>rag/</b> engine &mdash; imported by the chat widget, the Telegram bot, and the email draft-writer. LangChain stays CLI-only.</div>
+    <div class="dgm dgm-scroll">
+      <svg viewBox="0 0 940 840" role="img" aria-label="A question forks into two RAG backends — ask.py (from-scratch, NumPy) on the left and langchain_app.py (LangChain, Chroma) on the right. Each runs the same five stages: load, chunk, embed, retrieve, generate. Amber double-arrows show that both backends read the same docs, embed with the same BAAI/bge-m3 model, and generate with the same qwen2.5:7b model. Both converge on one grounded answer with a citation. Below, an 'in production' band shows the from-scratch rag/ engine being imported by three surfaces — the vweeter.com chat widget, the Telegram bot, and the email draft replies — while the LangChain build stays CLI-only.">
+        <defs>
+          <marker id="ah-flow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon class="mk-flow" points="0,0 10,5 0,10"/>
+          </marker>
+          <marker id="ah-share" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon class="mk-share" points="0,0 10,5 0,10"/>
+          </marker>
+        </defs>
+
+        <!-- QUESTION -->
+        <rect class="qbox" x="310" y="14" width="320" height="44" rx="10"/>
+        <text class="t" x="470" y="33" text-anchor="middle" font-size="13" font-weight="600">User question</text>
+        <text class="tm mono" x="470" y="49" text-anchor="middle" font-size="11">“how do I withdraw my winnings”</text>
+
+        <!-- fork -->
+        <line class="flow" x1="470" y1="58" x2="470" y2="66"/>
+        <polyline class="flow" points="470,66 165,66 165,72" marker-end="url(#ah-flow)"/>
+        <polyline class="flow" points="470,66 775,66 775,72" marker-end="url(#ah-flow)"/>
+
+        <!-- lane header pills -->
+        <rect class="aPill" x="40"  y="72" width="250" height="34" rx="8"/>
+        <text class="tw mono" x="165" y="89" text-anchor="middle" font-size="13" font-weight="700">ask.py</text>
+        <text class="tw" x="165" y="101" text-anchor="middle" font-size="9" opacity="0.9">from-scratch · NumPy</text>
+        <rect class="bPill" x="650" y="72" width="250" height="34" rx="8"/>
+        <text class="tw mono" x="775" y="89" text-anchor="middle" font-size="13" font-weight="700">langchain_app.py</text>
+        <text class="tw" x="775" y="101" text-anchor="middle" font-size="9" opacity="0.9">LangChain · Chroma</text>
+        <line class="flow" x1="165" y1="106" x2="165" y2="118" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="775" y1="106" x2="775" y2="118" marker-end="url(#ah-flow)"/>
+
+        <!-- ===== LANE A boxes ===== -->
+        <rect class="aBox" x="40" y="118" width="250" height="54" rx="9"/>
+        <text class="t mono" x="165" y="144" text-anchor="middle" font-size="13">loader.py</text>
+        <text class="tm" x="165" y="160" text-anchor="middle" font-size="10">load &amp; tag · shared code</text>
+
+        <rect class="aBox" x="40" y="202" width="250" height="54" rx="9"/>
+        <text class="t mono" x="165" y="228" text-anchor="middle" font-size="13">chunker.py</text>
+        <text class="tm" x="165" y="244" text-anchor="middle" font-size="10">hand-rolled split</text>
+
+        <rect class="aBox" x="40" y="286" width="250" height="54" rx="9"/>
+        <text class="t mono" x="165" y="312" text-anchor="middle" font-size="13">embedder.py</text>
+        <text class="tm" x="165" y="328" text-anchor="middle" font-size="10">SentenceTransformers</text>
+
+        <rect class="aBox" x="40" y="370" width="250" height="54" rx="9"/>
+        <text class="t mono" x="165" y="396" text-anchor="middle" font-size="13">store.py</text>
+        <text class="tm" x="165" y="412" text-anchor="middle" font-size="10">NumPy brute-force cosine</text>
+
+        <rect class="aBox" x="40" y="454" width="250" height="54" rx="9"/>
+        <text class="t mono" x="165" y="480" text-anchor="middle" font-size="13">generator.py</text>
+        <text class="tm" x="165" y="496" text-anchor="middle" font-size="10">HTTP call + language-lock</text>
+
+        <!-- ===== LANE B boxes ===== -->
+        <rect class="bBox" x="650" y="118" width="250" height="54" rx="9"/>
+        <text class="t mono" x="775" y="144" text-anchor="middle" font-size="13">loader.py</text>
+        <text class="tm" x="775" y="160" text-anchor="middle" font-size="10">reused unchanged</text>
+
+        <rect class="bBox" x="650" y="202" width="250" height="54" rx="9"/>
+        <text class="t mono" x="775" y="223" text-anchor="middle" font-size="12">RecursiveCharacter</text>
+        <text class="t mono" x="775" y="240" text-anchor="middle" font-size="12">TextSplitter</text>
+
+        <rect class="bBox" x="650" y="286" width="250" height="54" rx="9"/>
+        <text class="t mono" x="775" y="307" text-anchor="middle" font-size="12">HuggingFace</text>
+        <text class="t mono" x="775" y="324" text-anchor="middle" font-size="12">Embeddings</text>
+
+        <rect class="bBox" x="650" y="370" width="250" height="54" rx="9"/>
+        <text class="t mono" x="775" y="391" text-anchor="middle" font-size="12">Chroma</text>
+        <text class="t mono" x="775" y="408" text-anchor="middle" font-size="12">similarity_search</text>
+
+        <rect class="bBox" x="650" y="454" width="250" height="54" rx="9"/>
+        <text class="t mono" x="775" y="475" text-anchor="middle" font-size="12">ChatOllama</text>
+        <text class="t mono" x="775" y="492" text-anchor="middle" font-size="12">+ LCEL chain</text>
+
+        <!-- ===== CENTER SPINE ===== -->
+        <!-- LOAD chip -->
+        <rect class="chip" x="380" y="118" width="180" height="54" rx="9"/>
+        <text class="ts eb" x="470" y="134" text-anchor="middle">LOAD</text>
+        <text class="ts mono" x="470" y="150" text-anchor="middle" font-size="13" font-weight="700">docs/</text>
+        <text class="ts" x="470" y="164" text-anchor="middle" font-size="10">42 .md → 82 chunks</text>
+
+        <!-- CHUNK note -->
+        <text class="tm eb" x="470" y="222" text-anchor="middle">CHUNK</text>
+        <text class="tm" x="470" y="238" text-anchor="middle" font-size="10">≈600-char chunks · +100 overlap</text>
+
+        <!-- EMBED chip -->
+        <rect class="chip" x="380" y="286" width="180" height="54" rx="9"/>
+        <text class="ts eb" x="470" y="302" text-anchor="middle">EMBED</text>
+        <text class="ts mono" x="470" y="318" text-anchor="middle" font-size="13" font-weight="700">BAAI/bge-m3</text>
+        <text class="ts" x="470" y="332" text-anchor="middle" font-size="10">1024-d · multilingual</text>
+
+        <!-- RETRIEVE note -->
+        <text class="tm eb" x="470" y="390" text-anchor="middle">RETRIEVE</text>
+        <text class="tm" x="470" y="406" text-anchor="middle" font-size="10">cosine over the same vectors</text>
+
+        <!-- GENERATE chip -->
+        <rect class="chip" x="380" y="454" width="180" height="54" rx="9"/>
+        <text class="ts eb" x="470" y="470" text-anchor="middle">GENERATE</text>
+        <text class="ts mono" x="470" y="486" text-anchor="middle" font-size="13" font-weight="700">qwen2.5:7b</text>
+        <text class="ts" x="470" y="500" text-anchor="middle" font-size="10">via Ollama · :11434</text>
+
+        <!-- ===== lane internal flow arrows ===== -->
+        <!-- A -->
+        <line class="flow" x1="165" y1="172" x2="165" y2="202" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="165" y1="256" x2="165" y2="286" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="165" y1="340" x2="165" y2="370" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="165" y1="424" x2="165" y2="454" marker-end="url(#ah-flow)"/>
+        <!-- B -->
+        <line class="flow" x1="775" y1="172" x2="775" y2="202" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="775" y1="256" x2="775" y2="286" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="775" y1="340" x2="775" y2="370" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="775" y1="424" x2="775" y2="454" marker-end="url(#ah-flow)"/>
+
+        <!-- ===== shared-resource convergence (amber, double-headed) ===== -->
+        <line class="share" x1="292" y1="145" x2="376" y2="145" marker-start="url(#ah-share)" marker-end="url(#ah-share)"/>
+        <line class="share" x1="648" y1="145" x2="564" y2="145" marker-start="url(#ah-share)" marker-end="url(#ah-share)"/>
+        <line class="share" x1="292" y1="313" x2="376" y2="313" marker-start="url(#ah-share)" marker-end="url(#ah-share)"/>
+        <line class="share" x1="648" y1="313" x2="564" y2="313" marker-start="url(#ah-share)" marker-end="url(#ah-share)"/>
+        <line class="share" x1="292" y1="481" x2="376" y2="481" marker-start="url(#ah-share)" marker-end="url(#ah-share)"/>
+        <line class="share" x1="648" y1="481" x2="564" y2="481" marker-start="url(#ah-share)" marker-end="url(#ah-share)"/>
+
+        <!-- ===== converge to answer ===== -->
+        <polyline class="flow" points="165,508 165,528 452,528 452,548" marker-end="url(#ah-flow)"/>
+        <polyline class="flow" points="775,508 775,528 488,528 488,548" marker-end="url(#ah-flow)"/>
+        <rect class="ansBox" x="320" y="548" width="300" height="52" rx="10"/>
+        <text class="t" x="470" y="570" text-anchor="middle" font-size="13" font-weight="600">Grounded answer + citation</text>
+        <text class="tm mono" x="470" y="587" text-anchor="middle" font-size="11">photonpoker/payouts.md</text>
+
+        <!-- ===== ZONE 2: production surfaces ===== -->
+        <line class="divider" x1="20" y1="632" x2="920" y2="632"/>
+        <text class="zeb" x="40" y="659">IN PRODUCTION</text>
+        <text class="tm" x="40" y="677" font-size="12">the same from-scratch engine (left lane) wears three faces — LangChain powers none of them</text>
+
+        <rect class="aPill" x="175" y="692" width="260" height="46" rx="9"/>
+        <text class="tw mono" x="305" y="714" text-anchor="middle" font-size="13" font-weight="700">rag/</text>
+        <text class="tw" x="305" y="727" text-anchor="middle" font-size="9" opacity="0.9">from-scratch engine (the left lane)</text>
+
+        <rect class="cliPill" x="505" y="692" width="300" height="46" rx="9"/>
+        <text class="t mono" x="655" y="712" text-anchor="middle" font-size="12">langchain_app.py</text>
+        <text class="tm" x="655" y="727" text-anchor="middle" font-size="10">CLI reference · powers no surface</text>
+
+        <!-- distribution bus: rag/ imported by 3 surfaces -->
+        <line class="flow" x1="305" y1="738" x2="305" y2="754"/>
+        <line class="flow" x1="175" y1="754" x2="765" y2="754"/>
+        <text class="tm" x="338" y="750" font-size="10">imported by</text>
+        <line class="flow" x1="175" y1="754" x2="175" y2="770" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="470" y1="754" x2="470" y2="770" marker-end="url(#ah-flow)"/>
+        <line class="flow" x1="765" y1="754" x2="765" y2="770" marker-end="url(#ah-flow)"/>
+
+        <rect class="aBox" x="40" y="770" width="270" height="54" rx="9"/>
+        <text class="t" x="175" y="794" text-anchor="middle" font-size="12.5" font-weight="600">vweeter.com chat widget</text>
+        <text class="tm mono" x="175" y="811" text-anchor="middle" font-size="11">web_api.py</text>
+
+        <rect class="aBox" x="335" y="770" width="270" height="54" rx="9"/>
+        <text class="t" x="470" y="794" text-anchor="middle" font-size="12.5" font-weight="600">Telegram bot</text>
+        <text class="tm mono" x="470" y="811" text-anchor="middle" font-size="11">telegram_bot.py</text>
+
+        <rect class="aBox" x="630" y="770" width="270" height="54" rx="9"/>
+        <text class="t" x="765" y="794" text-anchor="middle" font-size="12.5" font-weight="600">Email draft replies</text>
+        <text class="tm mono" x="765" y="811" text-anchor="middle" font-size="11">email_dashboard/</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- printable: WTW round-2 cue card (light / one page) -->
+<div class="cue-print-modal" id="cuePrint" role="dialog" aria-modal="true" aria-label="Printable WTW cue card">
+  <div class="cpm-bar">
+    <span class="msg">Print preview — <b>Cmd/Ctrl-P</b> → fits one page</span>
+    <button class="cpm-print">🖨 Print</button>
+    <button class="cpm-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="cpm-card">
+    <div class="cpm-head">
+      <div>
+        <h2>WTW · Round 2 Cue Card</h2>
+        <p class="sub">Forward Deployed AI Engineer · Health, Wealth &amp; Career</p>
+      </div>
+      <div class="cpm-who">
+        <b>Richard Hanson</b> — ex-founder/CEO (Jobable), now <b>Product &amp; Digital Strategy / Innovation</b>, HWC (Hong Kong). <span class="warn">Tests business fit, adoption, trust — NOT model internals.</span> Reward speed &amp; delivered results.
+      </div>
+    </div>
+    <div class="cpm-rule">
+      <span class="k">The golden rule — every answer</span>
+      <span class="flow">Claim → Evidence (“a system I built…”) → Result.</span>
+      <b> Don’t make him dig. Lead with your best line — don’t arrive at it third.</b>
+    </div>
+    <div class="cpm-grid">
+      <div>
+        <p class="cpm-eyebrow">The MSCI Story · your anchor</p>
+        <ol class="cpm-beats">
+          <li>Sat <b>with</b> the analysts — watched them work, triaged their bugs. Didn’t guess.</li>
+          <li>Saw it: quants doing <b>clerical data-entry</b> — SAS, long commands, find the cell, type by hand, every day.</li>
+          <li class="say">“That’s not the work we hired them for — their job is judgment.”</li>
+          <li>Fixed it: same calc behind a <b>simple interface. Same inputs, same outputs</b> — didn’t change their business.</li>
+          <li>Proved it: analysts test → <b>small group vs. the rest</b> → <i>were they faster?</i> → looped feedback.</li>
+          <li>Lesson: never became the expert — gave an <b>augmented</b> version of what they already do, faster.</li>
+        </ol>
+      </div>
+      <div>
+        <p class="cpm-eyebrow">3 Loaded Lines · drop these in</p>
+        <ol class="cpm-lines">
+          <li><span class="lab">Ground truth</span><i>“I prove it on their <b>own past decisions</b> — not asking them to trust my judgment, showing it matches theirs.”</i></li>
+          <li><span class="lab">Earned autonomy</span><i>“Starts fully supervised. Every human edit is a correction <b>and</b> a measurement — autonomy is <b>earned</b> when edits drop, never switched on.”</i></li>
+          <li><span class="lab">What I bring</span><i>“I don’t need their domain — that’s theirs. I bring the governed engineering that gets their <b>science into a product clients adopt</b>.”</i></li>
+        </ol>
+        <p class="cpm-eyebrow" style="margin-top:14px">Working w/ the DS Team · his lane</p>
+        <ul class="cpm-pts">
+          <li><b>Clear lanes:</b> they own the science (is it valid?); I own productionizing + LLM/workflow + eval + deployment + adoption.</li>
+          <li>I get their science <b>out of the notebook</b> and in front of clients.</li>
+          <li><span class="em">I know when NOT to use an LLM</span> — if they’ve a validated model, I deploy <b>theirs</b>.</li>
+          <li>I plug <b>into</b> their governance, never around it. No shadow models.</li>
+          <li>Eval is shared: they define “correct,” I build the harness.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="cpm-say">
+      <p class="cpm-eyebrow">Say out loud</p>
+      <div class="cpm-chips">
+        <span>“Augment, not automate.”</span>
+        <span>“Same decisions, same outputs — just faster.”</span>
+        <span>“I take away the drudgery, not the judgment.”</span>
+      </div>
+      <p class="cpm-bridge"><span class="lab">Bridge</span><i>“I don’t need to out-actuary the actuary — same answers, faster, that they trust.”</i></p>
+      <p class="cpm-safe"><b>Safe-failure reminder:</b> abstain &gt; guess · money / PII → always a human · confidence ≠ stakes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- printable: any category section (light) — content injected by JS -->
+<div class="cue-print-modal" id="catPrint" role="dialog" aria-modal="true" aria-label="Printable section">
+  <div class="cpm-bar">
+    <span class="msg">Print preview — <b>Cmd/Ctrl-P</b> → print this section</span>
+    <button class="cpm-print">🖨 Print</button>
+    <button class="cpm-close" aria-label="Close">&times;</button>
+  </div>
+  <div class="cpm-card" id="catPrintCard"></div>
+</div>
+
+<script>
+const CATS = {
+  apps:    {label:'Apps & Products',        color:'#38bdf8'},
+  security:{label:'Security · Anti-Cheat · Anti-Fraud', color:'#f87171'},
+  ai:      {label:'RAG & Applied AI',       color:'#a855f7'},
+  trading: {label:'Algorithmic Trading',    color:'#38d39f'},
+  infra:   {label:'Infrastructure · Backend · DevOps', color:'#f59e0b'},
+};
+
+const ITEMS = [
+// ---------------- APPS ----------------
+{c:'apps',t:'Crypto reward-game portfolio (100+ apps)',
+ s:'Free-to-play mobile games that pay real cryptocurrency. Hourly weighted prize draws + offerwalls fund payouts in FaucetPay, Binance gift cards, and on-chain ETH/SOL. ~50M downloads across the portfolio.',
+ tags:['Android','iOS','Flutter','Unity','Cocos2d-x','Firebase'],
+ p:['Flagships: CryptoPop, Bitcoin Freeze, Bitcoin Mega Merge, Bitcoin 21/Crossjack, 2P Big 2, Photon Poker, PopStellar, CryptoWord, Doge Pong.',
+    'Every app is server-authoritative — the client is treated as hostile; wallets, scores, and draws live in the backend.',
+    'Same reusable backend + anti-fraud core lifted across the whole portfolio, so one fix protects every app with no client release.']},
+{c:'apps',t:'Cross-stack client engineering',
+ s:'Shipped production clients on five stacks, with full monetisation and growth plumbing wired end-to-end.',
+ tags:['AppLovin MAX','IAP','BitLabs','Adjoe','Play Install Referrer'],
+ p:['Ad mediation: AppLovin MAX across 8+ networks (Google, Unity, Chartboost, InMobi, ByteDance, Mintegral, Verve…), GDPR/UMP consent.',
+    'IAP done right: consumable vs non-consumable split, immediate entitlement unlock, cold-start re-verification, refund/chargeback revocation, 3-day acknowledgement.',
+    'Referrals wired all three legs (share link, apply-code dialog, Play Install Referrer probe); offerwall integrations with reversal-fraud handling.']},
+{c:'apps',t:'Release & store automation',
+ s:'Automated the boring, error-prone parts of shipping to two app stores.',
+ tags:['Play Console API','App Store Connect API','TestFlight CLI','App Check'],
+ p:['Google Play androidpublisher API for listings, AAB/APK uploads, track management, review reads.',
+    'App Store Connect API + TestFlight CLI pipeline for iOS builds; keystore + signing management.',
+    'Pre-submission checklist codified (App Check lists) so new apps clear review first time.']},
+
+// ---------------- SECURITY ----------------
+{c:'security',t:'Server-authoritative game integrity (HMAC scoring)',
+ s:'The client never decides its own score. The server issues an HMAC-signed session (seed + id + timestamp); at game-end it recomputes the score from the seed and the tap log and ignores whatever the client claims.',
+ tags:['HMAC','App Check','Play Integrity','Cloud Functions'],
+ p:['Kills client-side score injection entirely — the classic attack on reward games.',
+    'Gated behind enforced App Check / Play Integrity, so tampered, emulated, or cloned clients are blocked from the scoring endpoints.',
+    'Bitcoin Freeze is the gold-standard build: score fully recomputed from seed+taps, App Check enforced.']},
+{c:'security',t:'Anti-Sybil system (reusable, server-side)',
+ s:'Rings of self-created accounts farm the hourly draw and funnel winnings to a few wallets. Defence clusters accounts by network + payout email and soft-bans them — protecting every client with no app release.',
+ tags:['Firestore','IPv6 /64','soft-ban','fail-open'],
+ p:['Signals: ≥3 uids sharing an IPv6 /64 (or exact IPv4), ≥3 uids sharing a payout email; shared-email accounts collapse to one draw entry; ≤1 claim/email/hour.',
+    'Soft-ban not delete: flagged accounts still play but are excluded from draws + claims and re-zeroed each hour — fully reversible.',
+    'Fail-open by design (an outage never blocks legit users). Retroactive sweep first-run flagged 121 / 64 / 48 accounts across three apps.',
+    'Forensics that motivated it: one payout email tied to 68 uids; a single IPv6 shared by 59 uids.']},
+{c:'security',t:'Payment / IAP integrity + Pub/Sub reconciliation',
+ s:'Every in-app purchase is verified server-side against the store and independently reconciled afterward, so refunds, voids and chargebacks claw entitlements back.',
+ tags:['androidpublisher','purchaseState===0','Pub/Sub RTDN','idempotent'],
+ p:['Grants gated on purchaseState===0 — blocks the pending→cancelled deferred-order fraud (~99% fraud signal).',
+    'Async reconciliation: Google Play Real-time Developer Notifications over Pub/Sub + a scheduled voided-purchase poller as an at-least-once backstop.',
+    'Idempotent on purchaseToken / message-id — a dropped webhook never leaves a grant wrong.']},
+{c:'security',t:'Server-verified reward-ad claim gate',
+ s:'“Watch a video to claim” — but verified server-side via AppLovin S2S postback, because the client gate is trivially bypassed. Recovers ad revenue per payout AND acts as anti-cheat.',
+ tags:['AppLovin S2S','HMAC','Firestore txn','safe rollout'],
+ p:['CF verifies EVENT_TOKEN = sha1(event_id + event_key), records the reward event, and claim handlers consume it transactionally within a 5-min window.',
+    'setUserIdentifier wired through the AuthStateListener (a one-shot races sign-in — a 24h audit showed only ~14% of postbacks carried a uid before the fix).',
+    'Rolled out behind a config flag, only flipped after >95% postback success confirmed in logs.']},
+{c:'security',t:'Exploit hunts & payout forensics',
+ s:'Ongoing red-team of my own economies: find the farmer taking the lion\'s share of payouts, quantify it, and ship a silent fix.',
+ tags:['Firestore forensics','shadow-ban','shadow-nerf'],
+ p:['Caught a single farmer (12 sybils) taking 97.8% of a game\'s payouts via an unsigned bonus-refill call; fixed the same day.',
+    'Cross-app draw farmers, referral farms, and client-trusted jackpot-ticket minting found & closed across the portfolio.',
+    'Silent levers: shadow-ban (excluded from draws/claims) and shadow-nerf (weight a farmer\'s accounts to 1 ticket) — mitigate without tipping off the attacker.']},
+{c:'security',t:'Secrets hygiene & cost engineering',
+ s:'Migrated 9 apps off paid Secret Manager onto env vars where safe, keeping only money/supply-chain keys in SM.',
+ tags:['Secret Manager','env vars','GCP'],
+ p:['Cut secret infra ~$10 → $2.76/mo with no loss of protection for the sensitive keys.',
+    'Decommissioned Heroku onto per-app Cloud Functions to shrink the attack surface and bill.']},
+
+// ---------------- AI ----------------
+{c:'ai',dgm:'rag-pipeline',t:'Multilingual customer-support RAG (local LLM)',
+ s:'RAG serving the vweeter.com chat widget, a Telegram bot, and email — answers generated by a local qwen2.5:7b LLM with bge-m3 embeddings via Ollama, grounded in help docs, running 100% on-box with no API cost and no data leaving the machine.',
+ tags:['qwen2.5:7b','bge-m3','Ollama','LangChain','FastAPI','langdetect'],
+ p:['Local models via Ollama: bge-m3 (1024-d) for retrieval, qwen2.5:7b for generation — upgraded from llama3.2:3b for stronger Chinese/Japanese/Korean/Arabic quality.',
+    'Pipeline: load → chunk → embed → cosine retrieve → generate — built from scratch first (brute-force NumPy over an in-memory index, no vector DB at this scale) to own every stage, then re-implemented side-by-side in LangChain (Chroma + LCEL) to compare; production runs the from-scratch pipeline for direct control over the multilingual embedding + language-lock.',
+    'Grounding guardrails: relevance floor to refuse off-topic, citations from real chunk metadata (not the LLM), never reveal a user\'s account details.',
+    'Multilingual: deterministic language detection (scripts by Unicode range + langdetect) forces the reply language — fixes an LLM\'s tendency to drift to its training-language prior.']},
+{c:'ai',t:'Agentic email support dashboard (human-in-the-loop)',
+ s:'Reads the support inbox every 30 min, triages each email, drafts a grounded reply in the customer\'s language, and lets a human approve/edit — then learns from the edits.',
+ tags:['IMAP/SMTP','triage','HITL','SQLite','launchd'],
+ p:['5-route triage (trivial / needs-review / account / clarify / off-topic) from retrieval confidence + an LLM classifier; account questions never auto-answered.',
+    'Learning loop: approved replies (PII-stripped, upserted) go into a Q&A memory searched alongside the docs; “promote to docs” is a human-gated curation step.',
+    'Responsible-AI defaults: idempotent send (no duplicate emails), auto-send OFF until draft-acceptance is proven, every AI decision logged.']},
+{c:'ai',t:'On-device generative AI — three modalities',
+ s:'Shipped fully-offline generative AI on the client across text, vision and audio. Architected and AI-directed to production (honest: I own the design/integration/testing, not line-by-line C++).',
+ tags:['BitNet b1.58','SmolVLM','MusicGen','C++/FFI','ONNX'],
+ p:['LoAI: offline LLM chat running BitNet b1.58 ternary-quant models + SmolVLM-500M vision over a native C++/FFI bridge to an ik_llama.cpp fork; on-device PDF/DOCX analysis (local RAG). iOS/Android/macOS/Linux.',
+    'MusicCook: on-device music generation — MusicGen Small in ONNX runtime, offline after a one-time model download; multi-clip crossfade + WAV export.',
+    'The defensible “why”: BitNet for memory footprint + add-only CPU compute + quantization-aware quality — real edge-AI reasoning, not a wrapper.']},
+
+// ---------------- TRADING ----------------
+{c:'trading',t:'Crypto perps trading (CryptoKO)',
+ s:'Automated BTC/SOL perpetual-futures trading on Hyperliquid / Bitunix, running unattended on cloud, with a 5-minute live-vs-backtest reconciliation loop.',
+ tags:['Hyperliquid','Bitunix','ADX regime','Tokyo/Mumbai EC2'],
+ p:['V7B→V9A strategy: rolling-window regime detection (ADX + slope), EMA/round-level entries, R-level trailing stops, 1% risk on isolated margin.',
+    'Every 5 min: fetch bars → short-window backtest → diff against live positions → open/close → full backtest in background → alert on any live-vs-backtest drift.',
+    'Bidirectional book verified by design; deployed across Mumbai (V9A) and Tokyo (V9B).']},
+{c:'trading',t:'Prediction-market convergence bot (Polymarket)',
+ s:'Maker-only bot on short-dated Up/Down books, with a backtest harness engineered specifically to NOT lie about fills.',
+ tags:['Polymarket','maker-only','honest fill model','queue-aware'],
+ p:['Polymarket keeps no history for expired short books, so I collect the order book live on Tokyo and backtest locally from the reconstructed windows.',
+    'Honest fill model: a bid fills only when a real trade prints through our price, then queue-aware (volume since placement must clear the size resting ahead).',
+    'Calibrated against ACTUAL live fills — the sim reproduced live win-rate to the point (84%); token-level precision is provably irreducible given snapshot granularity.']},
+{c:'trading',t:'Equities momentum (MOMO-D) + research discipline',
+ s:'Intraday US-equities momentum portfolio, plus a research process built around not fooling myself.',
+ tags:['Alpaca','RTH-only','walk-forward','leak-audit'],
+ p:['MOMO-D: intraday momentum on Alpaca (paper), RTH-only, EOD-flat, full backtest regenerated nightly and reconciled.',
+    '“No future data” golden rule: audited and patched three distinct classes of look-ahead leak (regime-filter daily-bar leak, gap-filter leak, 1-bar cluster leak).',
+    'Intellectual honesty: revised a leak-inflated “$10K→$9M” backtest down to an honest ~$200–400K/5yr expectation — I trust results I can\'t break.']},
+
+// ---------------- INFRA ----------------
+{c:'infra',t:'Serverless backends (Firebase)',
+ s:'Server-authoritative game logic on managed serverless — wallets, ledgers, draws, auth — for the whole portfolio.',
+ tags:['Cloud Functions gen2','Firestore','RTDB','Firebase Auth'],
+ p:['Money and score state never trusted to the client; all mutations go through Cloud Functions with validation + idempotency.',
+    'Firestore + RTDB depending on app; per-app projects with shared reusable function modules.',
+    'Async-restore-safe auth (await authStateChanges before snapshotting uid) so listeners never silently fail to attach.']},
+{c:'infra',t:'Multi-region always-on ops',
+ s:'A fleet of cloud + local hosts running payout relays, trading bots, RAG services and dashboards around the clock.',
+ tags:['Mumbai EC2','Tokyo EC2','Mac mini','Tigerclaw','PM2/launchd'],
+ p:['Mumbai + Tokyo EC2: Binance gift-card creation, payout relays, crypto trading cycles.',
+    'Mac mini + Tigerclaw Mac: local-LLM RAG, email support, trading backtests, dashboards — kept alive by launchd, exposed only over Tailscale.',
+    'TigerHQ portal: one pane of glass linking every dashboard across all machines.']},
+{c:'infra',t:'Observability, networking & payments plumbing',
+ s:'The glue: monitoring, safe exposure, and the money rails that actually pay users.',
+ tags:['Cloudflare Tunnel','Tailscale','Telegram alerts','SES/Gmail'],
+ p:['Cloudflare tunnels expose only the intended endpoint; the local LLM stays bound to localhost, never public.',
+    'Telegram bot alerting + watchdogs + live-vs-backtest drift monitors for both trading and app fraud spikes.',
+    'Payout rails: FaucetPay, Binance Pay gift cards, PayPal Payouts, on-chain ETH/SOL, with SES/Gmail claim receipts.']},
+];
+
+const upd = new Date().toISOString().slice(0,10);
+document.getElementById('upd').textContent = upd;
+
+// build category pills
+const controls = document.querySelector('.controls');
+for(const [k,v] of Object.entries(CATS)){
+  const el=document.createElement('span');
+  el.className='navpill'; el.dataset.cat=k; el.textContent=v.label.split(' · ')[0];
+  el.style.borderColor=v.color;
+  controls.appendChild(el);
+}
+
+let activeCat='all', query='';
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function hl(s){ if(!query)return esc(s); const re=new RegExp('('+query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'); return esc(s).replace(re,'<mark>$1</mark>'); }
+
+function render(){
+  const out=document.getElementById('out'); out.innerHTML='';
+  let shown=0;
+  for(const [ck,cv] of Object.entries(CATS)){
+    if(activeCat!=='all' && activeCat!==ck) continue;
+    const items=ITEMS.filter(i=>i.c===ck).filter(i=>{
+      if(!query) return true;
+      const hay=(i.t+' '+i.s+' '+i.tags.join(' ')+' '+i.p.join(' ')).toLowerCase();
+      return hay.includes(query.toLowerCase());
+    });
+    if(!items.length) continue;
+    shown+=items.length;
+    const sec=document.createElement('div'); sec.className='cat';
+    sec.innerHTML=`<div class="cat-h" style="color:${cv.color};border-color:${cv.color}">${cv.label}<span class="n">${items.length}</span><button class="cat-print" data-cat="${ck}" title="Print this section">🖨 Print</button></div>`;
+    for(const i of items){
+      const card=document.createElement('div'); card.className='card'; card.style.borderLeftColor=cv.color;
+      card.innerHTML=`<h3>${hl(i.t)}</h3><div class="sum">${hl(i.s)}</div>`+
+        `<div class="tags">${i.tags.map(t=>`<span>${hl(t)}</span>`).join('')}</div>`+
+        `<ul>${i.p.map(x=>`<li>${hl(x)}</li>`).join('')}</ul>`+(i.dgm?`<button class="dgm-btn" data-dgm="${i.dgm}">▸ View pipeline diagram</button>`:``);
+      sec.appendChild(card);
+    }
+    out.appendChild(sec);
+  }
+  if(!shown) out.innerHTML='<div class="empty">No matches. Try another term.</div>';
+}
+document.getElementById('q').addEventListener('input',e=>{query=e.target.value.trim();render()});
+controls.addEventListener('click',e=>{
+  if(!e.target.classList.contains('navpill'))return;
+  document.querySelectorAll('.navpill').forEach(p=>{p.classList.remove('active');p.style.background=''});
+  e.target.classList.add('active');
+  activeCat=e.target.dataset.cat;
+  if(activeCat!=='all'){e.target.style.background=CATS[activeCat].color}
+  render();
+});
+document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.id!=='q'){e.preventDefault();document.getElementById('q').focus()}});
+document.getElementById('out').addEventListener('click',e=>{
+  const b=e.target.closest('.dgm-btn'); if(!b)return;
+  const m=document.getElementById('dgm-'+b.dataset.dgm); if(m){m.classList.add('open');document.body.style.overflow='hidden';}
+});
+function dgmClose(m){m.classList.remove('open');document.body.style.overflow='';}
+document.querySelectorAll('.dgm-modal').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m||e.target.closest('.dgm-close')) dgmClose(m); });
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.dgm-modal.open').forEach(dgmClose); });
+
+// ===== printable full-screen previews (WTW cue card + any section) =====
+function cpmOpen(m){m.classList.add('open');document.body.style.overflow='hidden';}
+function cpmCloseAll(){document.querySelectorAll('.cue-print-modal.open').forEach(m=>m.classList.remove('open'));document.body.style.overflow='';}
+// open the WTW cue card
+document.getElementById('cueOpen').addEventListener('click',()=>cpmOpen(document.getElementById('cuePrint')));
+// open a category section printable (built from ITEMS, full category, ignores search)
+function buildCatPrint(ck){
+  const cv=CATS[ck]; if(!cv) return;
+  const items=ITEMS.filter(i=>i.c===ck);
+  let html=`<div class="cpm-cat-h">${esc(cv.label)}</div>`;
+  for(const i of items){
+    html+=`<div class="cpm-item"><h3>${esc(i.t)}</h3>`+
+      `<div class="cpm-sum">${esc(i.s)}</div>`+
+      `<div class="cpm-tags">${i.tags.map(t=>`<span>${esc(t)}</span>`).join('')}</div>`+
+      `<ul>${i.p.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  }
+  document.getElementById('catPrintCard').innerHTML=html;
+}
+document.getElementById('out').addEventListener('click',e=>{
+  const b=e.target.closest('.cat-print'); if(!b)return;
+  buildCatPrint(b.dataset.cat); cpmOpen(document.getElementById('catPrint'));
+});
+// close (backdrop / ×) + print button, for every print modal
+document.querySelectorAll('.cue-print-modal').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m||e.target.closest('.cpm-close')) cpmCloseAll(); });
+  const pb=m.querySelector('.cpm-print'); if(pb) pb.addEventListener('click',()=>window.print());
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') cpmCloseAll(); });
+
+render();
+</script>
+</body>
+</html>
