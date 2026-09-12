@@ -216,6 +216,7 @@ mark{background:#facc15;color:#000;border-radius:2px}
 <div id="out"></div>
 
 
+
 <footer>Build Sheet · served from Tigerclaw · press <b>/</b> to search</footer>
 </div>
 
@@ -486,6 +487,14 @@ const ITEMS = [
  p:['LoAI: offline LLM chat running BitNet b1.58 ternary-quant models + SmolVLM-500M vision over a native C++/FFI bridge to an ik_llama.cpp fork; on-device PDF/DOCX analysis (local RAG). iOS/Android/macOS/Linux.',
     'MusicCook: on-device music generation — MusicGen Small in ONNX runtime, offline after a one-time model download; multi-clip crossfade + WAV export.',
     'The defensible “why”: BitNet for memory footprint + add-only CPU compute + quantization-aware quality — real edge-AI reasoning, not a wrapper.']},
+{c:'ai',t:'LocalVidGen — self-hosted prompt-to-video studio (open source)',
+ s:'A Higgsfield-style prompt-to-video / prompt-to-image dashboard running entirely on my own hardware: a Flask controller on an always-on Mac drives ComfyUI on a Windows RTX 3090 box. Type a prompt, pick a model, the clip lands in a gallery and on Telegram.',
+ tags:['ComfyUI','LTX-2.5','Wan 2.2','MiniMax H3','Flask','ffmpeg'],
+ p:['Five pipelines — text→video, image→video, text→image, img2img, multi-reference→video — across LTX-2.5 22B distilled (generates audio too), Wan 2.2 14B/5B, and MiniMax H3. All jobs are hand-flattened ComfyUI API graphs built in code and validated against the server\'s /object_info — no workflow JSONs at runtime.',
+    'Long-form tooling: “extend” chains shots from the last frame, “stitch” joins a chain into one MP4 (ffmpeg xfade transitions + audio crossfade at every seam), and “fix face” runs a ReActor face-swap + GFPGAN pass across every frame.',
+    'Two-machine architecture: the GPU box sleeps and wakes on demand (SSH + Wake-on-LAN); the controller polls the ComfyUI queue, streams step progress over websocket, and enforces one-render-at-a-time across every submit path.',
+    'Downstream automation: an hourly launchd pipeline scripts multi-shot clips from an ideas file, renders them through the dashboard, uploads to S3, and auto-posts to X with read-back verification — a fully autonomous content channel.',
+    'Open-sourced (MIT): github.com/sparkso/comfyui-local-vid-gen-spark — written as a generic two-machine setup, not just my hosts.']},
 
 // ---------------- TRADING ----------------
 {c:'trading',t:'Crypto perps trading (CryptoKO)',
