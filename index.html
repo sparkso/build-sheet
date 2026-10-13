@@ -539,12 +539,12 @@ const ITEMS = [
     'Payout rails: FaucetPay, Binance Pay gift cards, PayPal Payouts, on-chain ETH/SOL, with SES/Gmail claim receipts.']},
 // ---------------- CAREER / LEADERSHIP ----------------
 {c:'career',t:'MSCI Barra — risk-model pipeline migration (shell/SAS → Java/Maven)',
- s:'Led a 10-engineer team migrating MSCI Barra\'s risk-model production pipeline — factor exposure & covariance estimation sold to institutional clients — from shell scripts + SAS to Java / Maven. Hard constraint: zero numerical drift in client-facing model outputs.',
+ s:'Technical lead (Senior Associate, reporting to the Head of Risk Analytics IT) of a 10-engineer team migrating MSCI Barra\'s risk-model production pipeline — 30+ factor models, one per country and one per sector, sold to institutional clients — from shell scripts + SAS to Java / Maven. Hard constraint: zero numerical drift in client-facing model outputs. Delivered with no cutover incident.',
  tags:['Java','Maven','SAS','shell','golden-file tests','parallel run','MSCI'],
  p:['Definition of done = numerical equivalence: golden-file diffs of old vs new on identical inputs, every discrepancy explained before acceptance — same discipline as AI eval.',
-    'Parallel run per component: legacy stayed source-of-truth while the Java pipeline shadowed it; cut over piece by piece with rollback, never big-bang.',
+    'Parallel run per model: legacy stayed source-of-truth while the Java pipeline shadowed it; cut over model by model with rollback, never big-bang.',
     'Platform: Maven multi-module, shared numerical libs, CI, reproducible versioned model releases — tacit shell knowledge turned into tested code.',
-    'People risk > code risk: paired SAS/shell model experts with Java engineers so domain knowledge moved with the code; made legacy owners the equivalence reviewers with authority to block a cutover.']},
+    'Owned JIRA triage for the team and stayed hands-on debugging the legacy shell/SAS myself; worked day-to-day with the DCA team (Data Content Analytics) who ran the daily/monthly models and checked data errors — they were the equivalence reviewers, with authority to block a cutover.']},
 ];
 
 const upd = new Date().toISOString().slice(0,10);
