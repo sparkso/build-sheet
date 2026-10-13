@@ -407,6 +407,7 @@ const CATS = {
   ai:      {label:'RAG & Applied AI',       color:'#a855f7'},
   trading: {label:'Algorithmic Trading',    color:'#38d39f'},
   infra:   {label:'Infrastructure · Backend · DevOps', color:'#f59e0b'},
+  career:  {label:'Career · Leadership',   color:'#e8b64a'},
 };
 
 const ITEMS = [
@@ -536,6 +537,14 @@ const ITEMS = [
  p:['Cloudflare tunnels expose only the intended endpoint; the local LLM stays bound to localhost, never public.',
     'Telegram bot alerting + watchdogs + live-vs-backtest drift monitors for both trading and app fraud spikes.',
     'Payout rails: FaucetPay, Binance Pay gift cards, PayPal Payouts, on-chain ETH/SOL, with SES/Gmail claim receipts.']},
+// ---------------- CAREER / LEADERSHIP ----------------
+{c:'career',t:'MSCI Barra — risk-model pipeline migration (shell/SAS → Java/Maven)',
+ s:'Led a 10-engineer team migrating MSCI Barra\'s risk-model production pipeline — factor exposure & covariance estimation sold to institutional clients — from shell scripts + SAS to Java / Maven. Hard constraint: zero numerical drift in client-facing model outputs.',
+ tags:['Java','Maven','SAS','shell','golden-file tests','parallel run','MSCI'],
+ p:['Definition of done = numerical equivalence: golden-file diffs of old vs new on identical inputs, every discrepancy explained before acceptance — same discipline as AI eval.',
+    'Parallel run per component: legacy stayed source-of-truth while the Java pipeline shadowed it; cut over piece by piece with rollback, never big-bang.',
+    'Platform: Maven multi-module, shared numerical libs, CI, reproducible versioned model releases — tacit shell knowledge turned into tested code.',
+    'People risk > code risk: paired SAS/shell model experts with Java engineers so domain knowledge moved with the code; made legacy owners the equivalence reviewers with authority to block a cutover.']},
 ];
 
 const upd = new Date().toISOString().slice(0,10);
